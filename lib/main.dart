@@ -66,36 +66,79 @@ class _MyHomeState extends State<MyHome> {
 }
 
 // 訂閱內容顯示頁
-class Mysubscription extends StatelessWidget{
-  final String api = 'https://www.tuuuna.com/api/getapplist?cid=4&page=0';
+class Mysubscription extends StatefulWidget {
+  @override
+  _MysubscriptionState createState() => _MysubscriptionState();
+}
+class _MysubscriptionState extends State<Mysubscription>{
+  var page = 0;
+  var api = 'https://www.tuuuna.com/api/getapplist?cid=4&page=';
+  var datas = [];
+  ScrollController myscroll = new ScrollController();
 
-  getData(){
-    return http.get(api);
+  @override
+  void initState(){
+    super.initState();
+    getData();
+    myscroll.addListener(() {
+      //print(myscroll.position.pixels); //滾動位置
+      if(myscroll.position.pixels == myscroll.position.maxScrollExtent) {
+        print('滑到底了');
+        setState(() {
+          page = page + 1;
+          getData();
+        });
+      }
+    });
+  }
+
+  getData() async{
+    var response =  await http.get(api + page.toString());
+    setState((){
+      datas.addAll((jsonDecode(utf8.decode(response.bodyBytes))));
+    });
   }
 
   @override
   Widget build(BuildContext context){
-    return FutureBuilder(future: getData(), builder: (context, snap){
-      if(!snap.hasData){
-        return Container(color: Colors.green);
-      }
-      var datas = jsonDecode(utf8.decode(snap.data.bodyBytes));
-      return Container(
-        color: Colors.green,
-        child: ListView(
-          children: List.generate(10, (idx){
+    return Container(
+      color: Colors.green,
+      child: ListView(
+        controller: myscroll,
+        children: List.generate(datas.length, (idx){
 
-            var data = datas[idx];
-            return Card(child: Container(
-              height: 120,
-              padding: EdgeInsets.only(bottom: 40),
-              //color: Colors.green,
-              child: ListTile(title: Text(data['Title'], overflow: TextOverflow.ellipsis), subtitle: Html(data: data['Content'])),
-            ),);
-          }),
-        ),
-      );
-    });
+          var data = datas[idx];
+          return Card(child: Container(
+            height: 120,
+            padding: EdgeInsets.only(bottom: 40),
+            //color: Colors.green,
+            child: ListTile(title: Text(data['Title'], overflow: TextOverflow.ellipsis), subtitle: Html(data: data['Content'])),
+          ),);
+        }),
+      )
+    );
+    // return FutureBuilder(future: jsonlist, builder: (context, snap){
+    //   if(!snap.hasData){
+    //     return Container(color: Colors.green);
+    //   }
+    //   var datas = jsonDecode(utf8.decode(snap.data.bodyBytes));
+    //   return Container(
+    //     color: Colors.green,
+    //     child: ListView(
+    //       controller: myscroll,
+    //       children: List.generate(10, (idx){
+    //
+    //         var data = datas[idx];
+    //         return Card(child: Container(
+    //           height: 120,
+    //           padding: EdgeInsets.only(bottom: 40),
+    //           //color: Colors.green,
+    //           child: ListTile(title: Text(data['Title'], overflow: TextOverflow.ellipsis), subtitle: Html(data: data['Content'])),
+    //         ),);
+    //       }),
+    //     ),
+    //   );
+    // });
   }
 }
 
