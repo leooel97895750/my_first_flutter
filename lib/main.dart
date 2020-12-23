@@ -50,7 +50,7 @@ class _MyHomeState extends State<MyHome> {
           type: BottomNavigationBarType.fixed,
           currentIndex: index,
           onTap: (int idx){
-            //print(idx);
+            print(idx);
             setState(() {
               isArticle = 0;
               index = idx;
