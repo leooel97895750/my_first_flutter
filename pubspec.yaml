@@ -28,8 +28,9 @@ dependencies:
   http: ^0.12.2
   flutter_widget_from_html: ^0.5.1+5
   flutter_html: ^1.1.1
-  lazy_loading_list: ^1.0.0+1
-  bloc_pattern: ^2.5.1
+  url_launcher: ^5.7.10
+  flutter_linkify: ^4.0.2
+  rflutter_alert: ^1.1.0
 
 
   # The following adds the Cupertino Icons font to your application.

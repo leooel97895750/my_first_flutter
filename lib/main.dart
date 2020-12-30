@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_linkify/flutter_linkify.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 
 // 主程式進入點
 void main() => runApp(
@@ -39,6 +42,8 @@ class _MyHomeState extends State<MyHome> {
               index = idx;
               // 更新index
               indexGlobalKey.currentState.updateIndex(index);
+              // 將跳轉至學校
+              indexGlobalKey.currentState.updateSchoolPage(1);
             });
           },
           items: [
@@ -51,6 +56,10 @@ class _MyHomeState extends State<MyHome> {
   }
 }
 
+// 以下列表正常來說要從資料庫取，這裡快速demo
+var school = ['國立台灣大學', '國立交通大學', '國立清華大學', '國立成功大學', '國立政治大學'];
+var department = ['資訊工程學系', '機械工程學系', '電機工程學系', '光電科學與工程學系', '物理治療學系', '中國文學系', '台灣文學系', '地球科學學系', '化學工程學系', '工業設計學系', '護理學系', '醫學系', '工業與資訊管理學系'];
+var isStamp = [1,0,0,0,0,0,0,0,0,0,0,0,0];
 // MyHome的body部分，隨index調整
 class MyContent extends StatefulWidget {
   MyContent({Key key}):super(key:key);
@@ -69,7 +78,9 @@ class _MyContentState extends State<MyContent>{
   var article = []; // 文章內容
   var files = []; // 文章相關檔案
   var myaid = 0; // 目前文章id
+  // local頁面的切換
   var article_page = 0;
+  var school_page = 1;
 
   // 初始設定
   @override
@@ -97,7 +108,13 @@ class _MyContentState extends State<MyContent>{
   // 切換文章內容至列表
   void updateArticlePage(remote_page){
     setState(() {
-      article_page = 0;
+      article_page = remote_page;
+    });
+  }
+  // 切換科系至學校
+  void updateSchoolPage(remote_page){
+    setState(() {
+      school_page = remote_page;
     });
   }
 
@@ -105,9 +122,112 @@ class _MyContentState extends State<MyContent>{
   Widget build(BuildContext context){
     switch(local_index) {
 
-      // 首頁
+      // 首頁 選校選科系來訂閱文章
       case 0: {
-        return Container(color: Colors.blue);
+
+        if(school_page == 1){
+          return Container(
+            color: Colors.black87,
+            child: ListView(
+              children: List.generate(school.length, (idx){
+                var data = school[idx];
+                print(idx);
+                return Card(
+                  clipBehavior : Clip.antiAliasWithSaveLayer,
+                  child: Container(
+                    color: Colors.grey,
+                    padding: EdgeInsets.all(10),
+                    child: ListTile(
+                      leading: Image.asset('assets/school'+idx.toString()+'.png'),
+                      title: Text(data, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.white),),
+                      trailing: Icon(Icons.arrow_forward),
+                      // 點擊進入科系
+                      onTap: () {
+                        print(data);
+                        setState(() {
+                          school_page = 0;
+                        });
+                      },
+                    ),
+                  ),
+                );
+              }),
+            ),
+          );
+        }
+        else{
+          return Container(
+            color: Colors.black87,
+            child: GridView.count(
+            crossAxisCount: 2,
+            childAspectRatio: 2 / 1,
+            children: List.generate(department.length, (idx){
+              var stamp = (isStamp[idx] == 1) ? "assets/stamp.png" : "assets/white.png";
+              var data = department[idx];
+              return Card(
+                clipBehavior : Clip.antiAliasWithSaveLayer,
+                child: InkWell(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.grey,
+                      image: DecorationImage(
+                        alignment:Alignment.bottomRight,
+                        colorFilter: ColorFilter.mode(Colors.grey.withOpacity(0.2), BlendMode.srcOver),
+                        image: AssetImage(stamp),
+                      ),
+                    ),
+                    alignment:Alignment.center,
+
+                    child: Text(data, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.white, fontSize: 20),),
+                  ),
+                  onTap: (){
+                    if(isStamp[idx] == 0){
+                      Alert(
+                        context: context,
+                        title: "成功訂閱了喔~",
+                        desc: "幹得漂亮!",
+                        buttons: [
+                          DialogButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: Text(
+                              "OK",
+                              style: TextStyle(color: Colors.white, fontSize: 20),
+                            ),
+                          )
+                        ],
+                      ).show();
+                      setState(() {
+                        isStamp[idx] = 1;
+                      });
+                    }
+                    else{
+                      Alert(
+                        context: context,
+                        title: "要取消訂閱嗎?",
+                        desc: "QwQ",
+                        image: Image.asset("assets/cat.jpeg"),
+                        buttons: [
+                          DialogButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: Text(
+                              "OK",
+                              style: TextStyle(color: Colors.white, fontSize: 20),
+                            ),
+                          )
+                        ],
+                      ).show();
+                      setState(() {
+                        isStamp[idx] = 0;
+                      });
+                    }
+                  },
+                ),
+              );
+            }),
+          ),
+          );
+        }
+
       }
       break;
 
@@ -116,7 +236,7 @@ class _MyContentState extends State<MyContent>{
         // 列表
         if(article_page == 0){
           return Container(
-              color: Colors.green,
+              color: Colors.black87,
               child: ListView(
                 controller: myscroll,
                 children: List.generate(datas.length, (idx){
@@ -147,33 +267,137 @@ class _MyContentState extends State<MyContent>{
         // 詳細文章內容
         else{
           if(article == []){
-            return Container(color: Colors.green,);
+            return Container(color: Colors.black45,);
           }
           else{
             return Container(
-                color: Colors.green,
+                color: Colors.black87,
                 child: ListView(children: [
-                  Text(article[0]['Title']),
-                  Text('相關連結: ' + article[0]['URL']),
-                  Html(data: article[0]['Content']),
-                  Text(article[0]['Type']),
-                  Text(article[0]['Status']),
-                  Text(article[0]['Author']),
-                  Text(article[0]['Since']),
-                  ListView(
-                    shrinkWrap: true, //解決無限高度問題
-                    physics:NeverScrollableScrollPhysics(),//禁用滑動事件
-                    children: List.generate(files.length, (idx){
-                      var data = files[idx];
-                      return ListView(
-                          shrinkWrap: true, //解決無限高度問題
-                          physics:NeverScrollableScrollPhysics(),//禁用滑動事件
+                  Container(
+                    padding: EdgeInsets.all(5),
+                    margin: EdgeInsets.all(5),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.all(Radius.circular(6)),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          article[0]['Title'],
+                          style: TextStyle(fontSize: 20),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
-                            Text(data['FileName']),
-                            Text(data['UploadDate']),
-                            Text(data['FileURL']),
-                          ]);
-                    }),
+                            Container(
+                              padding: EdgeInsets.all(2),
+                              margin: EdgeInsets.only(top: 15),
+                              alignment:Alignment.center,
+                              constraints: BoxConstraints(maxHeight: 28, minHeight: 28),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.all(Radius.circular(6)),
+                                border: Border.all(width: 2, color: Colors.teal),
+                              ),
+                              child: Text(article[0]['Type'], style: TextStyle(fontSize: 14),),
+                            ),
+                            Container(
+                              padding: EdgeInsets.all(2),
+                              margin: EdgeInsets.only(top: 15),
+                              alignment:Alignment.center,
+                              constraints: BoxConstraints(maxHeight: 28, minHeight: 28),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.all(Radius.circular(6)),
+                                border: Border.all(width: 2, color: Colors.green),
+                              ),
+                              child: Text(article[0]['Author'], style: TextStyle(fontSize: 14),),
+                            ),
+                            Container(
+                              padding: EdgeInsets.all(2),
+                              margin: EdgeInsets.only(top: 15),
+                              alignment:Alignment.center,
+                              constraints: BoxConstraints(maxHeight: 28, minHeight: 28),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.all(Radius.circular(6)),
+                                border: Border.all(width: 2, color: Colors.green),
+                              ),
+                              child: Text(article[0]['Since'].replaceAll('-', '/').substring(0, article[0]['Since'].lastIndexOf(':')), style: TextStyle(fontSize: 14),),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.all(Radius.circular(6)),
+                    ),
+                    padding: EdgeInsets.all(5),
+                    margin: EdgeInsets.all(5),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Html(
+                          data: article[0]['Content'],
+                        ),
+                        Divider(),
+                        Container(
+                          margin: EdgeInsets.only(left: 8),
+                          child: Text('相關連結: ' + article[0]['URL']),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+
+                      borderRadius: BorderRadius.all(Radius.circular(6)),
+                    ),
+                    child: ListView(
+                      shrinkWrap: true, //解決無限高度問題
+                      physics:NeverScrollableScrollPhysics(),//禁用滑動事件
+                      children: List.generate(files.length, (idx){
+                        var data = files[idx];
+                        return Container(
+                          padding: EdgeInsets.all(5),
+                          margin: EdgeInsets.all(5),
+                          decoration: BoxDecoration(
+
+                            borderRadius: BorderRadius.all(Radius.circular(6)),
+                            border: Border.all(width: 2, color: Colors.green),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 8,
+                                child: Container(
+                                  child: Text(data['FileName'], style: TextStyle(color: Colors.white70),),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Container(
+                                  child: Column(
+                                    children: [
+
+                                      Text('下載檔案', style: TextStyle(fontSize: 16, color: Colors.blue),), //data['FileURL']
+
+                                      Text(data['UploadDate'], style: TextStyle(color: Colors.white70)),
+                                    ],
+                                  ),
+                                ),
+                              ),
+
+
+                            ],
+                          ),
+                        );
+                      }),
+                    ),
                   ),
                 ],)
             );
@@ -217,5 +441,4 @@ class _MyContentState extends State<MyContent>{
       article_page = 1;
     });
   }
-
 }

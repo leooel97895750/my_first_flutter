@@ -8,13 +8,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.5.0-nullsafety.1"
-  bloc_pattern:
-    dependency: "direct main"
-    description:
-      name: bloc_pattern
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.5.1"
   boolean_selector:
     dependency: transitive
     description:
@@ -174,6 +167,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.10.2"
+  flutter_linkify:
+    dependency: "direct main"
+    description:
+      name: flutter_linkify
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "4.0.2"
   flutter_svg:
     dependency: transitive
     description:
@@ -254,13 +254,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.6.2"
-  lazy_loading_list:
-    dependency: "direct main"
+  linkify:
+    dependency: transitive
     description:
-      name: lazy_loading_list
+      name: linkify
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.0+1"
+    version: "3.0.0"
   matcher:
     dependency: transitive
     description:
@@ -380,6 +380,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.5"
+  rflutter_alert:
+    dependency: "direct main"
+    description:
+      name: rflutter_alert
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.1.0"
   rxdart:
     dependency: transitive
     description:
@@ -463,7 +470,7 @@ packages:
     source: hosted
     version: "1.3.0-nullsafety.3"
   url_launcher:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: url_launcher
       url: "https://pub.dartlang.org"
