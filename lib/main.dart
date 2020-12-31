@@ -310,7 +310,7 @@ class _MyContentState extends State<MyContent>{
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.all(Radius.circular(6)),
-                                border: Border.all(width: 2, color: Colors.teal),
+                                border: Border.all(width: 2, color: Colors.green),
                               ),
                               child: Text(article[0]['Type'], style: TextStyle(fontSize: 14),),
                             ),
@@ -414,6 +414,17 @@ class _MyContentState extends State<MyContent>{
                         );
                       }),
                     ),
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(top: 10),
+                    alignment: Alignment.center,
+                    child: InkWell(
+                      child: Text(article[0]['articleURL'], style: TextStyle(color: Colors.blue)),
+                      onTap: (){
+                        _launchURL(article[0]['articleURL']);
+                      },
+                    ),
+
                   ),
                 ],)
             );
