@@ -240,15 +240,21 @@ class _MyContentState extends State<MyContent>{
               child: ListView(
                 controller: myscroll,
                 children: List.generate(datas.length, (idx){
-
                   var data = datas[idx];
+                  Color title_status = Colors.red;
+                  if(data['Status'] == "一般"){title_status = Colors.green;}
+                  else if(data['Status'] == "重要"){title_status = Colors.deepOrange;}
+                  else if(data['Status'] == "大學部"){title_status = Colors.blueAccent;}
+                  else if(data['Status'] == "研究所"){title_status = Colors.yellow;}
+                  else if(data['Status'] == "博士"){title_status = Colors.purple;}
+                  else{title_status = Colors.black;}
                   return Card(
                     child: Container(
                       height: 120,
                       padding: EdgeInsets.only(bottom: 40),
                       //color: Colors.green,
                       child: ListTile(
-                        title: Text(data['Title'], overflow: TextOverflow.ellipsis),
+                        title: Text(data['Title'], overflow: TextOverflow.ellipsis, style: TextStyle(color: title_status, fontWeight: FontWeight.bold),),
                         subtitle: Html(data: data['Content']),
                         // 點擊進入文章
                         onTap: () {
@@ -270,6 +276,13 @@ class _MyContentState extends State<MyContent>{
             return Container(color: Colors.black45,);
           }
           else{
+            Color article_status = Colors.red;
+            if(article[0]['Status'] == "一般"){article_status = Colors.green;}
+            else if(article[0]['Status'] == "重要"){article_status = Colors.deepOrange;}
+            else if(article[0]['Status'] == "大學部"){article_status = Colors.blueAccent;}
+            else if(article[0]['Status'] == "研究所"){article_status = Colors.yellow;}
+            else if(article[0]['Status'] == "博士"){article_status = Colors.purple;}
+            else{article_status = Colors.black;}
             return Container(
                 color: Colors.black87,
                 child: ListView(children: [
@@ -284,7 +297,7 @@ class _MyContentState extends State<MyContent>{
                       children: [
                         Text(
                           article[0]['Title'],
-                          style: TextStyle(fontSize: 20),
+                          style: TextStyle(fontSize: 20, color: article_status),
                         ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -383,9 +396,12 @@ class _MyContentState extends State<MyContent>{
                                 child: Container(
                                   child: Column(
                                     children: [
-
-                                      Text('下載檔案', style: TextStyle(fontSize: 16, color: Colors.blue),), //data['FileURL']
-
+                                      InkWell(
+                                        child: Text('下載檔案', style: TextStyle(fontSize: 16, color: Colors.blue),), //data['FileURL']
+                                        onTap: (){
+                                          _launchURL(data['FileURL']);
+                                        },
+                                      ),
                                       Text(data['UploadDate'], style: TextStyle(color: Colors.white70)),
                                     ],
                                   ),
@@ -440,5 +456,14 @@ class _MyContentState extends State<MyContent>{
       files = jsonDecode(utf8.decode(response.bodyBytes));
       article_page = 1;
     });
+  }
+
+  _launchURL(String url) async {
+    url = Uri.encodeFull(url); // url to url encode.
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
   }
 }
