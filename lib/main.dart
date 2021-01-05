@@ -37,6 +37,7 @@ class _MyHomeState extends State<MyHome> {
             setState(() {
               // 若在index == 1的情況下點擊，將跳轉至文章列表
               if(index == 1 && idx == 1){
+                indexGlobalKey.currentState.updateMykeyword('');
                 indexGlobalKey.currentState.updateArticlePage(0);
               }
               index = idx;
@@ -70,7 +71,7 @@ class _MyContentState extends State<MyContent>{
   var local_index = 1;
   ScrollController myscroll = new ScrollController();
   // 網頁資料
-  var api_list = 'https://www.tuuuna.com/api/getapplist?cid=4&page=';
+  var api_list = 'https://www.tuuuna.com/api/getapplist?cid=4&keyword=&page=';
   var api_article = 'https://www.tuuuna.com/api/getapparticle?aid=';
   var api_file = 'https://www.tuuuna.com/api/getapparticlefile?aid=';
   var page = 0; // 當前列表頁數
@@ -81,6 +82,7 @@ class _MyContentState extends State<MyContent>{
   // local頁面的切換
   var article_page = 0;
   var school_page = 1;
+  var mykeyword = '';
 
   // 初始設定
   @override
@@ -93,7 +95,7 @@ class _MyContentState extends State<MyContent>{
         print('滑到底了');
         setState(() {
           page = page + 1;
-          getList();
+          getList(keyword: mykeyword);
         });
       }
     });
@@ -109,6 +111,15 @@ class _MyContentState extends State<MyContent>{
   void updateArticlePage(remote_page){
     setState(() {
       article_page = remote_page;
+
+    });
+  }
+  // 關鍵字消去
+  void updateMykeyword(remote_keyword){
+    setState(() {
+      mykeyword = remote_keyword;
+      datas = [];
+      getList(keyword: mykeyword);
     });
   }
   // 切換科系至學校
@@ -236,37 +247,89 @@ class _MyContentState extends State<MyContent>{
         // 列表
         if(article_page == 0){
           return Container(
-              color: Colors.black87,
-              child: ListView(
-                controller: myscroll,
-                children: List.generate(datas.length, (idx){
-                  var data = datas[idx];
-                  Color title_status = Colors.red;
-                  if(data['Status'] == "一般"){title_status = Colors.green;}
-                  else if(data['Status'] == "重要"){title_status = Colors.deepOrange;}
-                  else if(data['Status'] == "大學部"){title_status = Colors.blueAccent;}
-                  else if(data['Status'] == "研究所"){title_status = Colors.yellow;}
-                  else if(data['Status'] == "博士"){title_status = Colors.purple;}
-                  else{title_status = Colors.black;}
-                  return Card(
-                    child: Container(
-                      height: 120,
-                      padding: EdgeInsets.only(bottom: 40),
-                      //color: Colors.green,
-                      child: ListTile(
-                        title: Text(data['Title'], overflow: TextOverflow.ellipsis, style: TextStyle(color: title_status, fontWeight: FontWeight.bold),),
-                        subtitle: Html(data: data['Content']),
-                        // 點擊進入文章
-                        onTap: () {
-                          print(data['AID']);
-                          myaid = data['AID'];
-                          getArticle(); //取得文章和檔案
-                        },
+            color: Colors.black87,
+            child: Column(
+              children: [
+
+                Expanded(
+                  flex: 13,
+                  child: Container(
+                    //color: Colors.black45,
+                    margin: EdgeInsets.only(top: 10),
+                    child: TextField(
+                      onSubmitted: (keyword){
+                        print(keyword);
+                        setState(() {
+                          datas = [];
+                          page = 0;
+                          mykeyword = keyword;
+                          getList(keyword: keyword);
+                        });
+                      },
+                      decoration: InputDecoration(
+                        isDense: true,                      // Added this
+                        contentPadding: EdgeInsets.all(0),
+                        icon: Icon(Icons.search, color: Colors.white,),
+                        labelText: '關鍵字查詢',
+                        labelStyle: TextStyle(color: Colors.white),
+                        suffix: IconButton(icon: Icon(Icons.close, color: Colors.white,), onPressed: (){
+                          FocusScope.of(context).requestFocus(new FocusNode());
+                        }),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.green),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.green),
+                        ),
                       ),
                     ),
-                  );
-                }),
-              )
+                  ),
+                ),
+                Expanded(
+                  flex: 87,
+                  child: ListView(
+                    controller: myscroll,
+                    children: List.generate(datas.length, (idx){
+                      var data = datas[idx];
+                      Color title_status = Colors.red;
+                      if(data['Status'] == "一般"){title_status = Colors.green;}
+                      else if(data['Status'] == "重要"){title_status = Colors.deepOrange;}
+                      else if(data['Status'] == "大學部"){title_status = Colors.blueAccent;}
+                      else if(data['Status'] == "研究所"){title_status = Colors.yellow;}
+                      else if(data['Status'] == "博士"){title_status = Colors.purple;}
+                      else{title_status = Colors.black;}
+                      return Card(
+                        child: Container(
+                          height: 120,
+                          padding: EdgeInsets.only(bottom: 40),
+                          //color: Colors.green,
+                          child: ListTile(
+                            title: Text(data['Title'], overflow: TextOverflow.ellipsis, style: TextStyle(color: title_status, fontWeight: FontWeight.bold),),
+                            subtitle: SingleChildScrollView(
+                              child: Column(
+                                  children:[
+                                    Text(data['Since']),
+                                    Html(data: data['Content']),
+                                  ]
+                              ),
+                            ),
+                            // 點擊進入文章
+                            onTap: () {
+                              print(data['AID']);
+                              myaid = data['AID'];
+                              getArticle(); //取得文章和檔案
+                            },
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+
+
+              ],
+            ),
+
           );
         }
 
@@ -360,7 +423,17 @@ class _MyContentState extends State<MyContent>{
                         Divider(),
                         Container(
                           margin: EdgeInsets.only(left: 8),
-                          child: Text('相關連結: ' + article[0]['URL']),
+                          child: Row(
+                            children: [
+                              Text('相關連結: '),
+                              InkWell(
+                                child: Text(article[0]['URL'], style: TextStyle(color: Colors.blue),),
+                                onTap: (){
+                                  _launchURL(article[0]['URL']);
+                                },
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -416,7 +489,7 @@ class _MyContentState extends State<MyContent>{
                     ),
                   ),
                   Container(
-                    margin: EdgeInsets.only(top: 10),
+                    margin: EdgeInsets.only(top: 10, bottom: 10),
                     alignment: Alignment.center,
                     child: InkWell(
                       child: Text(article[0]['articleURL'], style: TextStyle(color: Colors.blue)),
@@ -436,7 +509,100 @@ class _MyContentState extends State<MyContent>{
 
       // 設定
       case 2: {
-        return Container(color: Colors.yellow);
+        return Scaffold(
+          appBar: AppBar(
+            backgroundColor: Colors.black87,
+            title: Text('APP設定'),
+          ),
+          bottomNavigationBar: BottomAppBar(
+            color: Colors.black,
+            child: Text(
+              'Made by NCKU CSIE',
+              textDirection: TextDirection.ltr,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white),
+            )
+          ),
+          body: Container(
+            color: Colors.black87,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                //頭像
+                Container(
+                  margin: EdgeInsets.all(10),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Container(
+                        width: 110,
+                        height: 100,
+                        child: ClipOval(
+                          child: Image.asset(
+                            'assets/cat.jpeg',
+                            width: 100,
+                            height: 100,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        child: Text(
+                          'TestingAccount@gmail.com',
+                          style: TextStyle(color: Colors.white, fontSize: 18),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Divider(color: Colors.grey, indent: 10, endIndent: 10,),
+                //設定選單
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      flex: 5,
+                      child: Container(
+                        color: Colors.green,
+                      ),
+                    ),
+                    Expanded(
+                      flex: 95,
+                      child: Container(
+                        alignment: Alignment.centerRight,
+                        child: ListView(
+                          shrinkWrap: true, //解決無限高度問題
+                          physics:NeverScrollableScrollPhysics(),//禁用滑動事件
+                          children: [
+                            ListTile(
+                              leading: Icon(Icons.app_registration, color: Colors.white,),
+                              title: Text('主題色彩', style: TextStyle(color: Colors.white),),
+                            ),
+                            ListTile(
+                              leading: Icon(Icons.logout, color: Colors.white,),
+                              title: Text('帳號登出', style: TextStyle(color: Colors.white),),
+                            ),
+                            ListTile(
+                              leading: Icon(Icons.replay, color: Colors.white,),
+                              title: Text('帳號初始化', style: TextStyle(color: Colors.white),),
+                            ),
+                            ListTile(
+                              leading: Icon(Icons.description, color: Colors.white,),
+                              title: Text('使用說明', style: TextStyle(color: Colors.white),),
+                            ),
+                            ListTile(
+                              leading: Icon(Icons.add_comment_rounded, color: Colors.white,),
+                              title: Text('意見提供', style: TextStyle(color: Colors.white),),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+              ],
+            ),
+          ),
+        );
       }
       break;
 
@@ -449,8 +615,8 @@ class _MyContentState extends State<MyContent>{
   }
 
   // API取資料
-  void getList() async{
-    var response = await http.get(api_list + page.toString());
+  void getList({String keyword = ''}) async{
+    var response = await http.get(api_list.replaceAll('keyword=', 'keyword='+keyword) + page.toString());
     setState((){
       datas.addAll((jsonDecode(utf8.decode(response.bodyBytes))));
     });
