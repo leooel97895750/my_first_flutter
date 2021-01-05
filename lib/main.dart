@@ -119,6 +119,7 @@ class _MyContentState extends State<MyContent>{
     setState(() {
       mykeyword = remote_keyword;
       datas = [];
+      page = 0;
       getList(keyword: mykeyword);
     });
   }
@@ -424,13 +425,20 @@ class _MyContentState extends State<MyContent>{
                         Container(
                           margin: EdgeInsets.only(left: 8),
                           child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              Text('相關連結: '),
-                              InkWell(
-                                child: Text(article[0]['URL'], style: TextStyle(color: Colors.blue),),
-                                onTap: (){
-                                  _launchURL(article[0]['URL']);
-                                },
+                              Expanded(
+                                flex: 2,
+                                child: Text('相關連結: '),
+                              ),
+                              Expanded(
+                                flex: 8,
+                                child: InkWell(
+                                  child: Text(article[0]['URL'], style: TextStyle(color: Colors.blue),),
+                                  onTap: (){
+                                    _launchURL(article[0]['URL']);
+                                  },
+                                ),
                               ),
                             ],
                           ),
