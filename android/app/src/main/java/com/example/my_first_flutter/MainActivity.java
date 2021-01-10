@@ -1,4 +1,4 @@
-package com.example.my_first_flutter;
+package com.tuuuna.my_first_flutter;
 
 import io.flutter.embedding.android.FlutterActivity;
 
